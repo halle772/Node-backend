@@ -1,11 +1,29 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+const dotEnv = require('dotenv');
+const app = require('./app');
 
-app.get('/', (req, res) => {
-  res.send('Hello from Node.js backend!');
+// UnCaught Exceptions
+process.on('uncaughtException', err => {
+  console.log(err.name, err.message);
+  console.log('uncaughtException ! Shutting down....');
+  process.exit(1);
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}/`);
+dotEnv.config({ path: './config.env' });
+
+const DB = process.env.DATABASE_LOCAL;
+
+// Starting the server.
+const port = 3000
+const server = app.listen(port, () => {
+  console.log(`app is running on port ${port}`);
+});
+
+// Handling UnhandledRejection 
+process.on('rejectionHandled', err => {
+  console.log(err.name, err.message);
+  console.log('UnhandledRejection ! Shutting down....');
+  
+  server.close(() => {
+    process.exit(1);
+  })
 });
